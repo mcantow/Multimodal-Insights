@@ -2,6 +2,7 @@
 Final project for Multimodal User Interfaces. Sales dashboard enabling concurrent voice and mouse gesture interactions. 
 
 ## Getting Started
+This project uses Django as a webserver so the files function in a browser properly. Follow the steps below to get it running on your machine. 
 
 ### Step 1, Clone Repo, Prepare To Setup
 - Check you have [python](https://www.python.org/downloads/) and [pip](https://packaging.python.org/en/latest/tutorials/installing-packages/) installed on your system. Using VSCode is recommended. Tested using pythin 3.9
