@@ -3,11 +3,14 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import webSpeechExample_render
+from .views import webSpeechExample_render, tool_render, home_render, instructions_render
 
 
 urlpatterns = [
+    path("", home_render),
     path("webSpeechExample/", webSpeechExample_render),
+    path("tool/", tool_render),
+    path("instructions/", instructions_render),
     path("admin/", admin.site.urls),
 ]
 
