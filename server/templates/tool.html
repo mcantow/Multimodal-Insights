@@ -1,9 +1,33 @@
 {% extends "base.html" %}
 {% load static %}
 {% block content %}
+    <script>
+       var people = JSON.parse('{{peopleJson|safe}}');
+    //    alert(people[0][0]) 
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
     <script src="{% static 'js/webgazer.js' %}"></script>
 	<script src="{% static 'js/tool.js' %}"></script>
     <div class="terminal" id="terminal"></div>
-    <!-- <div id="block" style="position: absolute; bottom: 0; left: 0; background-color: red; height: 200px; width: 200px;"></div> -->
     <div class="recordingStatusContainer"><div id="status" class="recordingStatus" >Not Listening</div></div>
+    <div class="dataContainer">
+        <div class="peopleContainer">
+            {% for name, count, picLoc in people %}
+                <div class="personContainer" id="{{name}}{{count}}">
+                    <img src="{{picLoc}}">
+                    <div class="name">{{name}}</div>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="fieldsContainer">
+            <div id="revenue" class="field">Revenue</div>
+            <div id="customer-conversations" class="field">Customer Conversations</div>
+            <div id="completed-sales" class="field">Completed Sales</div>
+            <div id="win-rate" class="field">Win Rate</div>
+        </div>
+        <div class="chartContainer">
+            <canvas id="line-chart"></canvas>
+            <div class="divLine" id="dataBar"></div>
+        </div>
+    </div>
 {% endblock content %}

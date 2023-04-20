@@ -2,6 +2,21 @@
   --darkgrey : rgb(34, 25, 25); 
   --cardinal : #C41E3A;
   --green    : #1ec4a8;
+  --greengrey: #95a19e;
+}
+
+::-webkit-scrollbar-track{
+  width: 5px;
+}
+
+::-webkit-scrollbar{
+  width: 5px;
+}
+
+::-webkit-scrollbar-thumb{
+  width: 5px;
+  background-color: var(--cardinal);
+  border-radius: 5px;
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Audiowide&family=Cairo:wght@300&family=Exo+2:wght@500&family=Orbitron&family=Play&family=Roboto:wght@100&family=Syne&display=swap');
@@ -11,7 +26,7 @@
   top: 242px;
   left: 0px; 
   width: 256px; 
-  height: 50px;
+  height: 55px;
   background-color: black;
   border-right: 2px solid var(--cardinal);
   font-family: 'Cairo', sans-serif;
@@ -26,6 +41,7 @@
   padding: 10px;
   border-radius: 5px;
   margin: auto;
+  margin-top: 10px;
 }
 
 .recordingStatus.active{
@@ -134,7 +150,7 @@ body{
   left: 0px;
   bottom: 0;
   width: 248px;
-  height: calc(100vh - 292px);
+  height: calc(100vh - 302px);
   border-right: 2px solid var(--cardinal);
   background-color: black;
   padding: 4px;
@@ -153,6 +169,8 @@ body{
 
 .terminal::-webkit-scrollbar-thumb{
   width: 5px;
+  background-color: var(--cardinal);
+  border-radius: 5px;
 }
 
 .terminal .command{
@@ -160,7 +178,93 @@ body{
   margin-bottom: 5px;
 }
 
+.terminal .response{
+  color: white;
+  margin-bottom: 10px;
+}
+
+.terminal .response.help{
+  text-align: center;
+}
+
 .terminal .initCommand{
-  color: var(--cardinal);
+  color: yellow;
   margin-bottom: 5px;
+}
+
+.dataContainer{
+  height: calc(100vh - 52px);
+  width: calc(100% - 258px);
+  position: absolute;
+  top:52px;
+  left: 258px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.peopleContainer,
+.fieldsContainer,
+.chartContainer{
+  display: flex;
+  flex-direction: row;
+  height: fit-content;
+  width:calc(100%);
+  justify-content: space-evenly;
+  margin-top: 30px;
+}
+
+.chartContainer{
+  position: relative;
+}
+
+.personContainer img{
+  width: 150px;
+  height: 120px;
+  border-radius: 50%;
+  box-shadow: 0 0 10px 0 var(--green);
+}
+
+.personContainer .name{
+  text-align: center;
+  font: 'Cairo', sans-serif;
+  font-size: 24px;
+}
+
+.personContainer.selected img{
+  box-shadow: 0 0 15px 3px var(--cardinal);
+}
+
+.personContainer.selected .name{
+  color: var(--cardinal);
+}
+
+.field{
+  background-color: black;
+  padding: 20px;
+  font-size: 20px;
+  border-radius: 10px;
+  font-family: 'Cairo', sans-serif;
+  margin-top: 20px;
+}
+
+.field.selected{
+  box-shadow: 0 0 15px 3px var(--cardinal);
+}
+
+#line-chart{
+  width: 100% !important;
+  height: 330px !important;
+}
+
+.chartContainer .divLine{
+  /* start left of date is 40px*/
+  /* right is 5px */
+  position: absolute;
+  width: 3px;
+  height: 223px;
+  background-color: var(--cardinal);
+  left: 100px;
+  top: 33px;
 }
