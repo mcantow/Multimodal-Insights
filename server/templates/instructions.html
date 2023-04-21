@@ -3,4 +3,15 @@
 {% block content %}
     <script>document.getElementById('instructions').classList.add('active');</script>
     <h1>instructions Page</h1>
+    <p>Calibrate the gaze tracker. This has to be done once for the tool to work, additional rounds
+        will continue to improve performance.
+    </p>
+    <a href="/train/gazefilter">Train here</a>
+    <a onclick="resetCalibrations()" href="/train/gazefilter">Reset calibration</a>
+
+    <script>
+        function resetCalibrations(){
+            window.localStorage.setItem('calibrations', null);
+        }
+    </script>
 {% endblock content %}

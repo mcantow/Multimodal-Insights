@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import webSpeechExample_render, tool_render, home_render, instructions_render
+from .views import webSpeechExample_render, tool_render, home_render, instructions_render, webgazer_example, train_gazefilter
 
 
 urlpatterns = [
@@ -11,6 +11,8 @@ urlpatterns = [
     path("webSpeechExample/", webSpeechExample_render),
     path("tool/", tool_render),
     path("instructions/", instructions_render),
+    path("webgazer/", webgazer_example),
+    path("train/gazefilter", train_gazefilter),
     path("admin/", admin.site.urls),
 ]
 

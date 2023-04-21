@@ -21,32 +21,155 @@ window.addEventListener('mousemove', (event) => {
 });
 
 // TRACK GAZE POSITION
-let gazePos = { x: undefined, y: undefined };
-webgazer.setRegression('weightedRidge');
-// webgazer.setRegression('linear');
-let webgazerReady = false;
-webgazer.setGazeListener(function(data, elapsedTime) {
-	if (data == null) {
-		return;
-	}else{
-        if (!webgazerReady){
-            webgazerReady = true;
-            var terminal = document.getElementById('terminal');
-            var readyNotification1 = document.createElement('div');
-            terminal.appendChild(readyNotification1);
-            readyNotification1.innerText = '--> Gaze Tracker Ready.';
-            readyNotification1.classList.add('initCommand');
-            var readyNotification2 = document.createElement('div');
-            terminal.appendChild(readyNotification2);
-            readyNotification2.innerText = '--> Click then say "help" for more info.';
-            readyNotification2.classList.add('initCommand');
-        }
-        var xprediction = data.x; //these x coordinates are relative to the viewport
-        var yprediction = data.y; //these y coordinates are relative to the viewport
-        // console.log(elapsedTime); //elapsed time is based on time since begin was called
-        gazePos = {x:xprediction, y:yprediction}
+document.addEventListener('DOMContentLoaded', initGazefilter());
+// let canvasBox = document.getElementById('canvasBox')
+let trackingData = false;
+async function initGazefilter(){
+    let WASM_URL = '/static/gazefilter.wasm';
+    await gazefilter.init(WASM_URL);
+    try{
+        var calibs = window.localStorage.getItem('calibrations');
+        await gazefilter.tracker.setCalibration(JSON.parse(calibs));
+    }catch{
+        function function1(){
+            return new Promise(function(resolve, reject) {
+              speakText('The gaze detector needs to be configured to begin. Look at the targets and shoot to calibrate.');
+              resolve();
+            });
+          }
+          
+          function function2(){
+            window.location.href = '/train/gazefilter';
+          }
+          
+          function1().then(function2);
+
+        
+        // await new Promise(r => setTimeout(r, 2000));
+        // window.location.href = '/train/gazefilter';
     }
-}).begin();
+    await gazefilter.tracker.connect(); 
+    let canvas = document.getElementById("tracker-canvas");
+    gazefilter.visualizer.setCanvas(canvas);
+    gazefilter.visualizer.setListener("filter", render);
+    
+    document.addEventListener("click", startWeights);
+
+    function startWeights(event){
+        gazefilter.tracker.calibrate(
+            event.timeStamp,  // relative to performance.timeOrigin
+            event.screenX,  // in pixels
+            event.screenY,  // in pixels
+            1.0  // see note below
+        ); 
+        document.removeEventListener("mousemove", startWeights);
+        var terminal = document.getElementById('terminal');
+        var readyNotification1 = document.createElement('div');
+        terminal.appendChild(readyNotification1);
+        readyNotification1.innerText = '--> Gaze Tracker Ready.';
+        readyNotification1.classList.add('initCommand');
+    }
+    var terminal = document.getElementById('terminal');
+    var readyNotification3 = document.createElement('div');
+    terminal.appendChild(readyNotification3);
+    readyNotification3.innerText = '--> Focus face and click to begin gaze tracking.';
+    readyNotification3.classList.add('initCommand');
+    var readyNotification2 = document.createElement('div');
+    terminal.appendChild(readyNotification2);
+    readyNotification2.innerText = '--> Click then say "help" for more info.';
+    readyNotification2.classList.add('initCommand');
+
+    function oncalib(response) {
+        console.log("calibration error: ", response.errorValue);
+    }
+
+    gazefilter.tracker.addListener("calib", oncalib);
+
+    gazefilter.tracker.addListener("filter", event => {
+        if (!isNaN(event.bestGazePoint()[0])){
+            // console.log(event.bestGazePoint())
+            var[x,y] = event.bestGazePoint();
+            var dot = document.getElementById('dot');
+            dot.style.left = x + 'px';
+            dot.style.top  = y + 'px';
+            if (!trackingData){
+                canvasBox.classList.add('ready');
+                trackingData = true
+            }
+        }else{
+            if (trackingData){
+                canvasBox.classList.remove('ready');
+                trackingData = false
+            }
+        }
+    });
+}
+
+function transportTarget(target){
+    const x = Math.floor(Math.random() * (window.innerWidth - 50));
+    const y = Math.floor(Math.random() * (window.innerHeight-50));
+    target.style.left = x + 'px';
+    target.style.top = y + 'px';
+}
+function render(ctx, trackEvent) {
+    console.log('drW')
+    // draw video frame
+    ctx.drawImage(
+        gazefilter.tracker.videoElement(),
+        0, 0, ctx.canvas.width, ctx.canvas.height
+    );
+
+    // set drawing style
+    ctx.strokeStyle = 'white';
+    ctx.fillStyle = 'white';
+    ctx.lineWidth = 2;
+
+    // draw facial landmarks
+    let shapeArray = trackEvent.shapeArrayView();
+    for (let i = 0; i < trackEvent.shapeSize(); i++) {
+        ctx.beginPath();
+        let pointX = shapeArray[i * 2];
+        let pointY = shapeArray[i * 2 + 1];
+        ctx.arc(pointX, pointY, 2, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // draw pupil center points
+    ctx.strokeStyle = 'red';
+    let [lx, ly, rx, ry] = trackEvent.pupilArray();
+    ctx.beginPath();
+    ctx.arc(lx, ly, 3, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(rx, ry, 3, 0, Math.PI * 2);
+    ctx.stroke();
+}
+// let gazePos = { x: undefined, y: undefined };
+// webgazer.setRegression('weightedRidge');
+// // webgazer.setRegression('linear');
+// let webgazerReady = false;
+// webgazer.setGazeListener(function(data, elapsedTime) {
+// 	if (data == null) {
+// 		return;
+// 	}else{
+//         if (!webgazerReady){
+//             webgazerReady = true;
+//             var terminal = document.getElementById('terminal');
+//             var readyNotification1 = document.createElement('div');
+//             terminal.appendChild(readyNotification1);
+//             readyNotification1.innerText = '--> Gaze Tracker Ready.';
+//             readyNotification1.classList.add('initCommand');
+//             var readyNotification2 = document.createElement('div');
+//             terminal.appendChild(readyNotification2);
+//             readyNotification2.innerText = '--> Click then say "help" for more info.';
+//             readyNotification2.classList.add('initCommand');
+//         }
+//         var xprediction = data.x; //these x coordinates are relative to the viewport
+//         var yprediction = data.y; //these y coordinates are relative to the viewport
+//         // console.log(elapsedTime); //elapsed time is based on time since begin was called
+//         gazePos = {x:xprediction, y:yprediction}
+//     }
+// }).begin();
 
 
 
@@ -57,7 +180,7 @@ document.addEventListener('DOMContentLoaded', function () {
     terminal.appendChild(readyNotification);
     readyNotification.innerText = '--> Voice Recognition Ready.';
     readyNotification.classList.add('initCommand');
-
+    var voices = speechSynthesis.getVoices();
     document.onclick = function() {
         if (!recording){
             recognition.start();
@@ -118,9 +241,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 The system tracks your eye gaze. Looking at the graphics to the right while speaking will improve results.<br>\
                 -----------------------------------------------<br>\
                 -----------------------------------------------';
-            speakText(' Welcome to Multimodal Insights! See homepage for description.  Queries must include a data field, a set of people, and a date range.\
-            New queries omitting an item will reuse the most recent item. Clicking the page will start recording audio input.\
-            The system tracks your eye gaze. Looking at the graphics to the right while speaking will improve results')
+            speakText(' Welcome to Multimodal Insights! Please refer to the terminal on the left for a description on how to use this tool');
             responseNotification.classList.add('response');
             responseNotification.classList.add('help');
             terminal.scrollTop = terminal.scrollHeight;
@@ -143,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 queriedFieldValid = true;
                 resNotification.innerText = resNotification.innerText + ' ' + queriedField;
             }else{
-                resNotification.innerText = resNotification.innerText + ' no command';
+                resNotification.innerText = resNotification.innerText + ' no data field';
             }
             if( start_date != 'none'){
                 dateRangeValid = true;
@@ -195,12 +316,12 @@ function speakQuery( currPeopleValid ,queriedFieldValid){
 function speakText(text){
     let utterance = new SpeechSynthesisUtterance(text);
     // var synthesis = window.speechSynthesis;
-    // var voices = speechSynthesis.getVoices();
+    var voices = speechSynthesis.getVoices();
     // console.log(voices);
-    // utterance.voice = voices[6];
-    // utterance.pitch = 1;
-    // utterance.rate = 1;
-    // utterance.volume = 0.8;
+    utterance.voice = voices[6];
+    utterance.pitch = 1;
+    utterance.rate = 1;
+    utterance.volume = 0.8;
     speechSynthesis.speak(utterance);
 }
 
@@ -361,7 +482,7 @@ function updateDate(results){
     // ---------------------------------------------------------------------------------- check if out of range
     // ---------------------------------------------------------------------------------- fix date range
     let seenMatch=false;
-    if(results[0].isFinal){
+    if(results[0].isFinal){ //can be removed now
         var res = results[0][0].transcript;
         res = res.toLowerCase();
         console.log('res',res)

@@ -4,6 +4,9 @@ import json
 def webSpeechExample_render(request):
     return render(request, "webSpeechExample.html")
 
+def webgazer_example(request):
+    return render(request, "webgazer_example.html")
+
 def tool_render(request):
     peopleList = ['john', 'janice', 'jessica', 'jeff', 'josie', 'john']
     peopleCounts = [0,      0,        0,         0,      0     ,  0    ]
@@ -19,3 +22,6 @@ def home_render(request):
 
 def instructions_render(request):
     return render(request, "instructions.html")
+
+def train_gazefilter(request):
+    return render(request, "trainGazefilter.html")
