@@ -10,7 +10,7 @@ recognition.maxAlternatives = 5;
 var recording = false;
 
 
-const NUM_DAYS = 10
+const NUM_DAYS = 120
 
 
 // TRACK MOUSE MOVEMENT
@@ -22,7 +22,7 @@ window.addEventListener('mousemove', (event) => {
 
 // TRACK GAZE POSITION
 document.addEventListener('DOMContentLoaded', initGazefilter());
-// let canvasBox = document.getElementById('canvasBox')
+var gazePos = { 'x': null, 'y':null};
 let trackingData = false;
 async function initGazefilter(){
     let WASM_URL = '/static/gazefilter.wasm';
@@ -43,10 +43,6 @@ async function initGazefilter(){
           }
           
           function1().then(function2);
-
-        
-        // await new Promise(r => setTimeout(r, 2000));
-        // window.location.href = '/train/gazefilter';
     }
     await gazefilter.tracker.connect(); 
     let canvas = document.getElementById("tracker-canvas");
@@ -62,12 +58,12 @@ async function initGazefilter(){
             event.screenY,  // in pixels
             1.0  // see note below
         ); 
-        document.removeEventListener("mousemove", startWeights);
         var terminal = document.getElementById('terminal');
         var readyNotification1 = document.createElement('div');
         terminal.appendChild(readyNotification1);
         readyNotification1.innerText = '--> Gaze Tracker Ready.';
         readyNotification1.classList.add('initCommand');
+        document.removeEventListener("click", startWeights);
     }
     var terminal = document.getElementById('terminal');
     var readyNotification3 = document.createElement('div');
@@ -92,6 +88,8 @@ async function initGazefilter(){
             var dot = document.getElementById('dot');
             dot.style.left = x + 'px';
             dot.style.top  = y + 'px';
+            gazePos['x'] = x;
+            gazePos['y'] = y;
             if (!trackingData){
                 canvasBox.classList.add('ready');
                 trackingData = true
@@ -107,7 +105,7 @@ async function initGazefilter(){
 
 function transportTarget(target){
     const x = Math.floor(Math.random() * (window.innerWidth - 50));
-    const y = Math.floor(Math.random() * (window.innerHeight-50));
+    const y = Math.floor(Math.random() * (window.innerHeight - 50));
     target.style.left = x + 'px';
     target.style.top = y + 'px';
 }
@@ -144,32 +142,6 @@ function render(ctx, trackEvent) {
     ctx.arc(rx, ry, 3, 0, Math.PI * 2);
     ctx.stroke();
 }
-// let gazePos = { x: undefined, y: undefined };
-// webgazer.setRegression('weightedRidge');
-// // webgazer.setRegression('linear');
-// let webgazerReady = false;
-// webgazer.setGazeListener(function(data, elapsedTime) {
-// 	if (data == null) {
-// 		return;
-// 	}else{
-//         if (!webgazerReady){
-//             webgazerReady = true;
-//             var terminal = document.getElementById('terminal');
-//             var readyNotification1 = document.createElement('div');
-//             terminal.appendChild(readyNotification1);
-//             readyNotification1.innerText = '--> Gaze Tracker Ready.';
-//             readyNotification1.classList.add('initCommand');
-//             var readyNotification2 = document.createElement('div');
-//             terminal.appendChild(readyNotification2);
-//             readyNotification2.innerText = '--> Click then say "help" for more info.';
-//             readyNotification2.classList.add('initCommand');
-//         }
-//         var xprediction = data.x; //these x coordinates are relative to the viewport
-//         var yprediction = data.y; //these y coordinates are relative to the viewport
-//         // console.log(elapsedTime); //elapsed time is based on time since begin was called
-//         gazePos = {x:xprediction, y:yprediction}
-//     }
-// }).begin();
 
 
 
@@ -201,9 +173,6 @@ document.addEventListener('DOMContentLoaded', function () {
         updateHelpCheck(event.results);
         updateSelectedPeople(event.results);
         updateDate(event.results);
-        // moveBlock();
-        // var color = event.results[0][0].transcript;
-        // console.log('Confidence: ' + event.results[0][0].confidence);
     }
     // recognition.onspeechstart = function(){
     //     console.log('speech started');
@@ -238,7 +207,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 Queries must include a data field, a set of people, and a date range.<br>\
                 New queries omitting an item will reuse the most recent item.<br>\
                 Clicking the page will start recording audio input.<br>-<br>\
-                The system tracks your eye gaze. Looking at the graphics to the right while speaking will improve results.<br>\
+                The system tracks your eye gaze. Looking at the graphics to the right while speaking will improve results.<br>-<br>\
+                Say "add" or "remove" followed by a persons name (while looking at person) to modify people set without resetting.<br>\
                 -----------------------------------------------<br>\
                 -----------------------------------------------';
             speakText(' Welcome to Multimodal Insights! Please refer to the terminal on the left for a description on how to use this tool');
@@ -248,6 +218,8 @@ document.addEventListener('DOMContentLoaded', function () {
             askedForHelp = false;
             personHeard = false;
             recording = false;
+            addPerson = false;
+            removePerson = false;
         }else{
             var resNotification = document.createElement('div');
             terminal.appendChild(resNotification);
@@ -282,14 +254,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 responseNotification.innerHTML = responseNotification.innerHTML + '| people ';
                 responseNotification.innerHTML = responseNotification.innerHTML + '| data field |<br>';
                 responseNotification.innerHTML = responseNotification.innerHTML + 'OPTIONAL QUERY ITEMS<br>| date range |';
+                speakQuery(currPeopleValid, queriedFieldValid);
             }else{
-                responseNotification.innerHTML = 'Database Query Result';
+                var queryRes = makeQuery(currPeopleObjs, queriedField, start_date, end_date);
+                responseNotification.innerHTML = queryRes;
+                speakQuery(currPeopleValid, queriedFieldValid, queryRes=queryRes);
             }
-            speakQuery(currPeopleValid, queriedFieldValid);
             responseNotification.classList.add('response');
             terminal.scrollTop = terminal.scrollHeight;
             personHeard = false;
             recording = false;
+            addPerson = false;
+            removePerson = false;
 
             // console.log(start_date);
         }
@@ -298,8 +274,55 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
+function makeQuery(currPeopleObjs, queriedField, start_date, end_date){
+    let res = 0;
+    let seen_datapoints = 0;
+    for (var i=0; i<currPeopleObjs.length; i++){
+        try{
+                jsonIndex = queriedField.replace(" ","-");
+                personIndex = currPeopleObjs[i][0] + currPeopleObjs[i][1]
+                personData = json_data[currPeopleObjs[i][0] + currPeopleObjs[i][1]];
+                if (start_date == 'none'){
+                    res = res + personData[jsonIndex].reduce((a, b) => a + b, 0);
+                    seen_datapoints = seen_datapoints + NUM_DAYS;
+                }else{
+                    if (end_date == 'none'){
+                        const start_i = computeIndex(start_date);
+                        res = res + personData[jsonIndex][start_i];
+                        seen_datapoints = seen_datapoints ++;
+                    }else{
+                        const start_i = computeIndex(start_date);
+                        const end_i = computeIndex(end_date);
+                        const resData = personData[jsonIndex].splice(start_i, end_i)
+                        res = res + resData.reduce((a, b) => a + b, 0);
+                        seen_datapoints = seen_datapoints + end_i - start_i
+                    }
+                }
+            // }
+        }catch{}
+    }
+    if (queriedField == 'win rate'){
+        console.log(res, seen_datapoints, res/seen_datapoints)
+        res = Math.round(res /seen_datapoints*100)/100;
+    }
+    return res;
+}
 
-function speakQuery( currPeopleValid ,queriedFieldValid){
+function computeIndex(date){
+    const today = new Date();
+    const [selectedMonth, selectedDay] = date.split(' ');
+    const year = today.getFullYear();
+    const selectedDate = new Date(`${selectedMonth} ${selectedDay}, ${year}`);
+    if (selectedDate > today) {
+        selectedDate.setFullYear(year - 1);
+    }
+    const diffInMs_selected = Math.abs(today - selectedDate);
+    const diffInDays_selected = Math.ceil(diffInMs_selected / (1000 * 60 * 60 * 24)) - 2;
+    return diffInDays_selected;
+}
+
+
+function speakQuery( currPeopleValid ,queriedFieldValid, queryRes=''){
     // currPeopleList, queriedField
     if (!currPeopleValid && queriedFieldValid){
         var text = 'Please select a set of people.';
@@ -308,7 +331,7 @@ function speakQuery( currPeopleValid ,queriedFieldValid){
     }else if (!currPeopleValid && !queriedFieldValid){
         var text = 'Please select a set of people and data field.';
     }else{
-        speakText('valid query I will get some data');
+        var text = queryRes
     }
     speakText(text);
 }
@@ -387,6 +410,8 @@ function updateQueriedField(results){
 // KEEP TRACK OF SELECTED PEOPLE
 // var people globably defined in template
 var personHeard = false; // if a person is heard wipe the list, otherwise append
+var addPerson   = false; // if a person is heard as well as "add", do not wipe list instead add the person
+var removePerson= false; // if a person is heard as well as "remove", do not wipe list instead remove the person
 var currPeopleObjs = [];
 var currPeopleList = [];
 
@@ -399,25 +424,66 @@ function updateSelectedPeople(results){
      */
     // -----------------------------------------------------------------------------------------check for duplicate names
     var res = results[0][0].transcript;
+    var selectedPersonIndex = null;
+    var selectedPersonGazeDist = null;
     res = res.toLowerCase();
+    if (res.includes('add')){addPerson = true;}
+    if (res.includes('remove')){removePerson = true;}
     for (var i=0; i<people.length; i++){
         if (res.includes(people[i][0]) || res == people[i][0]){
-            if (!personHeard){
-                currPeopleList = [];
-                currPeopleObjs = [];
-                let activeDoms = document.getElementsByClassName('personContainer');
-                for (var i=0; i<activeDoms.length; i++){
-                    activeDoms[i].classList.remove('selected');
-                }                
-                personHeard = true;
+            let selectedPersonDOM = document.getElementById(people[i][0] + people[i][1]);
+            let selectedPersonDOM_rect = selectedPersonDOM.getBoundingClientRect();
+            let curr_selectedPersonGazeDist = (selectedPersonDOM_rect.left - gazePos['x'])**2;
+            console.log('person', i, 'matched')
+            if (selectedPersonIndex == null || curr_selectedPersonGazeDist < selectedPersonGazeDist){
+                console.log('person', i, 'passed subcriteria')
+                selectedPersonIndex = i;
+                selectedPersonGazeDist = curr_selectedPersonGazeDist
             }
-            // console.log(currPeopleList, people[i][0])
-            if (!currPeopleList.includes(people[i][0])){
+        }
+    }
+    if (selectedPersonIndex != null){
+        processPersonInput(selectedPersonIndex);
+    }
+}
+
+function processPersonInput(i){
+    console.log('processingperson',i)
+    if (!addPerson && !removePerson){
+        console.log('here')
+        if (!personHeard){
+            currPeopleList = [];
+            currPeopleObjs = [];
+            let activeDoms = document.getElementsByClassName('personContainer');
+            for (var i=0; i<activeDoms.length; i++){
+                activeDoms[i].classList.remove('selected');
+            }                
+            personHeard = true;
+        }
+        // console.log(currPeopleList, people[i][0])
+        if (!currPeopleObjs.includes(people[i])){
+            console.log('adding')
+            currPeopleObjs.unshift(people[i]);
+            currPeopleList.unshift(people[i][0]);
+            let personDom = document.getElementById(people[i][0] + people[i][1]);
+            personDom.classList.add('selected')
+        }
+    }else{
+        if (addPerson){
+            if (!currPeopleObjs.includes(people[i])){
                 currPeopleObjs.unshift(people[i]);
                 currPeopleList.unshift(people[i][0]);
-                let personDom = document.getElementById(people[i][0] + '0');
-                personDom.classList.add('selected')
+                let personDom = document.getElementById(people[i][0] + people[i][1]);
+                personDom.classList.add('selected')  
             }
+        }else if (removePerson){
+            if (currPeopleObjs.includes(people[i])){
+                currPeopleObjs.splice(currPeopleObjs.indexOf(people[i]), 1);
+                currPeopleList.splice(currPeopleList.indexOf(people[i][0]), 1);
+                let personDom = document.getElementById(people[i][0] + people[i][1]);
+                personDom.classList.remove('selected')  
+            }
+
         }
     }
 }
@@ -460,8 +526,13 @@ function init_labels_date_range(num_days=120){
 function init_values_temp(num_days=120){
     // initialize last n totals in list
     let totals = [];
-    for (var i = 0; i < num_days; i ++){ 
-        totals.push(i);
+    for (var d=0; d<NUM_DAYS; d++){
+        var temp_tot = 0;
+        for (var i=0; i<people.length; i++){
+            personData = json_data[people[i][0] + people[i][1]];
+            temp_tot = temp_tot + personData['revenue'][d];
+        }
+        totals.unshift(temp_tot);
     }
     return totals
 }
@@ -485,14 +556,14 @@ function updateDate(results){
     if(results[0].isFinal){ //can be removed now
         var res = results[0][0].transcript;
         res = res.toLowerCase();
-        console.log('res',res)
+        // console.log('res',res)
         for (var i=0; i<months.length; i++){
             for (var j=0; j<days.length; j++){
                 var date_string = months[i] + ' ' + days[j];
                 if (res.includes(date_string) || res == date_string){
-                    console.log('included', date_string,res[res.indexOf(date_string) + date_string.length], digits.includes(res[res.indexOf(date_string) + date_string.length]))
+                    // console.log('included', date_string,res[res.indexOf(date_string) + date_string.length], digits.includes(res[res.indexOf(date_string) + date_string.length]))
                     if (!digits.includes(res[res.indexOf(date_string) + date_string.length])){
-                        console.log(date_string)
+                        // console.log(date_string)
                         if (start_date == 'none' || !seenMatch){
                             start_date = date_string;
                             end_date = 'none';

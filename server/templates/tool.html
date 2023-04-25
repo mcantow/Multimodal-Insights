@@ -3,6 +3,7 @@
 {% block content %}
     <script>
        var people = JSON.parse('{{peopleJson|safe}}');
+        var json_data = JSON.parse('{{json_data|safe}}');
     //    alert(people[0][0]) 
     </script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
@@ -37,5 +38,4 @@
             <div class="divLine" id="dataBar"></div>
         </div>
     </div>
-
 {% endblock content %}
