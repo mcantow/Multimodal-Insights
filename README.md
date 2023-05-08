@@ -1,5 +1,5 @@
 # Multimodal-Insights
-Final project for Multimodal User Interfaces. Sales dashboard enabling concurrent voice and mouse gesture interactions. 
+Final project for Multimodal User Interfaces. Sales dashboard enabling concurrent voice and gaze interactions. 
 
 ## Getting Started
 This project uses Django as a webserver so the files function in a browser properly. Follow the steps below to get it running on your machine. 
@@ -63,3 +63,4 @@ git clone https://github.com/mcantow/Multimodal-Insights
 
 ## Creation Notes
 - Needed to run a webserver so browser would not prompt audio connection each time. Used django for this
+- Tried 3 gaze tools

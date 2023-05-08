@@ -1,13 +1,149 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <script>document.getElementById('instructions').classList.add('active');</script>
-    <h1>instructions Page</h1>
-    <p>Calibrate the gaze tracker. This has to be done once for the tool to work, additional rounds
-        will continue to improve performance.
-    </p>
-    <a href="/train/gazefilter">Train here</a>
-    <a onclick="resetCalibrations()" href="/train/gazefilter">Reset calibration</a>
+<style>
+    /* Reset some default styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+      position: relative;
+      background-color: #0E1111;
+      color: white;
+      font-size: 20px !important;
+    }
+
+    .topnav::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(45deg, #1ec4a8, #0E1111, #0E1111, #C41E3A);
+      background-size: 400% 400%;
+      animation: gradientAnimation 15s ease infinite;
+      z-index: -1;
+    }
+
+    @keyframes gradientAnimation {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    /* Main container */
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+    }
+
+
+    /* Instructions section */
+    .instructions {
+      width: 75%;
+      margin-bottom: 2rem;
+      color: #C41E3A;
+      text-align: left;
+      margin-top: 30px;
+      margin-bottom: auto;
+    }
+
+    .instructions p{
+        color: white;
+    }
+
+    .instructions h2 {
+      font-size: 30px !important;
+      margin-bottom: 1rem;
+    }
+
+    .instructions p {
+      margin-bottom: 1rem;
+    }
+
+    .instructions ul {
+      list-style: disc;
+      margin-left: 2rem;
+      color: white;
+    }
+    .instructions ol {
+      color: white;
+    }
+
+    .instructions li {
+      margin-bottom: 0.5rem;
+    }
+    .link-container {
+      display: flex;
+      flex-direction: row;
+      width: fit-content;
+      margin:auto;
+      margin-top: 30px;
+    }
+
+    .link-container a {
+      display: inline-block;
+      margin-right: 1rem;
+      padding: 0.5rem 1rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: white;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      margin-top: 0;
+      margin-bottom: auto;
+    }
+
+    .link-container a:hover {
+        color: #1ec4a8;
+    }
+  </style>
+
+<div class="container">
+    <div class="instructions">
+      <h2>Instructions</h2>
+      <p>
+        The Multimodal Insights tool combines speech and gaze tracking to provide a seamless interaction experience. Here's how you can use it:
+      </p>
+      <ul>
+        <li>Speak: The tool listens to your voice commands. </li>
+        <li>Gaze Tracking: Eye gaze is tracked to disambiguate speech inputs.</li>
+        <li>Granular Queries: Select a set of people, a data field, and a date range to make specific queries.</li>
+        <li>Best and Worst Analysis: You can ask the system who performed the best or worst and specify a time period. It will provide an analysis for the given date range or month.</li>
+        <li>Date Range Omission: If a date range is omitted, the system will provide results for the entire available time.</li>
+        <li>System Response: The system will respond to your queries based on the selected parameters with a voice answer and text answer printed to the terminal.</li>
+      </ul>
+      <p>
+        It is required to configure the gaze tracker for your computer. To do so, follow these steps:
+      </p>
+      <ol>
+        <li>Click on the "Train Gaze Tracker" link below.</li>
+        <li>Look at and click the targets until a red dot on the screen follows your gaze. At this point you can continue calibrating further or use the tool.</li>
+        <li>The gaze tracker is sensitive to light changes, so you may wish to reconfigure. Click on the "Reset Calibration" link to do so.</li>
+      </ol>
+      <div class="link-container">
+        <a href="/train/gazefilter">Train Gaze Tracker</a>
+        <a onclick="resetCalibrations()" href="/train/gazefilter">Reset Calibration</a>
+      </div>
+    </div>
+
+  </div>
 
     <script>
         function resetCalibrations(){

@@ -275,31 +275,31 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function makeQuery(currPeopleObjs, queriedField, start_date, end_date){
+    console.log(currPeopleObjs, queriedField, start_date, end_date)
     let res = 0;
     let seen_datapoints = 0;
     for (var i=0; i<currPeopleObjs.length; i++){
-        try{
-                jsonIndex = queriedField.replace(" ","-");
-                personIndex = currPeopleObjs[i][0] + currPeopleObjs[i][1]
-                personData = json_data[currPeopleObjs[i][0] + currPeopleObjs[i][1]];
-                if (start_date == 'none'){
-                    res = res + personData[jsonIndex].reduce((a, b) => a + b, 0);
-                    seen_datapoints = seen_datapoints + NUM_DAYS;
-                }else{
-                    if (end_date == 'none'){
-                        const start_i = computeIndex(start_date);
-                        res = res + personData[jsonIndex][start_i];
-                        seen_datapoints = seen_datapoints ++;
-                    }else{
-                        const start_i = computeIndex(start_date);
-                        const end_i = computeIndex(end_date);
-                        const resData = personData[jsonIndex].splice(start_i, end_i)
-                        res = res + resData.reduce((a, b) => a + b, 0);
-                        seen_datapoints = seen_datapoints + end_i - start_i
-                    }
-                }
-            // }
-        }catch{}
+        jsonIndex = queriedField.replace(" ","-");
+        personIndex = currPeopleObjs[i][0] + currPeopleObjs[i][1]
+        personData = json_data[currPeopleObjs[i][0] + currPeopleObjs[i][1]];
+        if (start_date == 'none'){
+            res = res + personData[jsonIndex].reduce((a, b) => a + b, 0);
+            seen_datapoints = seen_datapoints + NUM_DAYS;
+        }else{
+            if (end_date == 'none'){
+                const start_i = computeIndex(start_date);
+                res = res + personData[jsonIndex][start_i];
+                seen_datapoints = seen_datapoints ++;
+            }else{
+                const start_i = computeIndex(start_date);
+                const end_i = computeIndex(end_date);
+                console.log(start_i, end_i);
+                const resData = personData[jsonIndex].slice(end_i, start_i) // temp fix 
+                console.log(personData[jsonIndex], resData)
+                res = res + resData.reduce((a, b) => a + b, 0);
+                seen_datapoints = seen_datapoints + start_i - end_i
+            }
+        }
     }
     if (queriedField == 'win rate'){
         console.log(res, seen_datapoints, res/seen_datapoints)
@@ -434,9 +434,7 @@ function updateSelectedPeople(results){
             let selectedPersonDOM = document.getElementById(people[i][0] + people[i][1]);
             let selectedPersonDOM_rect = selectedPersonDOM.getBoundingClientRect();
             let curr_selectedPersonGazeDist = (selectedPersonDOM_rect.left - gazePos['x'])**2;
-            console.log('person', i, 'matched')
             if (selectedPersonIndex == null || curr_selectedPersonGazeDist < selectedPersonGazeDist){
-                console.log('person', i, 'passed subcriteria')
                 selectedPersonIndex = i;
                 selectedPersonGazeDist = curr_selectedPersonGazeDist
             }
@@ -448,9 +446,9 @@ function updateSelectedPeople(results){
 }
 
 function processPersonInput(i){
-    console.log('processingperson',i)
+    // console.log('processingperson',i)
     if (!addPerson && !removePerson){
-        console.log('here')
+        // console.log('here')
         if (!personHeard){
             currPeopleList = [];
             currPeopleObjs = [];
@@ -460,9 +458,7 @@ function processPersonInput(i){
             }                
             personHeard = true;
         }
-        // console.log(currPeopleList, people[i][0])
-        if (!currPeopleObjs.includes(people[i])){
-            console.log('adding')
+        if (!currPeopleObjs.includes(people[i]) && people[i]){
             currPeopleObjs.unshift(people[i]);
             currPeopleList.unshift(people[i][0]);
             let personDom = document.getElementById(people[i][0] + people[i][1]);
@@ -492,7 +488,7 @@ function processPersonInput(i){
 
 // Bar chart
 document.addEventListener('DOMContentLoaded', function(){
-    new Chart(document.getElementById("line-chart"), {
+var chart = new Chart(document.getElementById("line-chart"), {
         type: 'line',
         data: {
           labels: init_labels_date_range(NUM_DAYS),
@@ -610,7 +606,19 @@ function makeDateBar(){
     const diffInDays_selected = Math.ceil(diffInMs_selected / (1000 * 60 * 60 * 24));
     // var percentLeft = 100*parseInt((today - firstDate) * 24 * 60 * 60 * 1000)/NUM_DAYS;
     var percentLeft = 100*(diffInDays_selected - 1)/diffInDays_total;
-    bar.style.left =  percentLeft + '%'; 
+    // bar.style.left =  percentLeft + '%'; 
+    // var canvas = document.getElementById("line-chart");
+    // var ctx = canvas.getContext("2d");
+    // ctx.fillStyle = "#FF0000";
+    // ctx.fillRect(0, 0, 150, 75);
+    // chart.data.datasets.push({
+    //     type: 'bar',
+    //     data: [
+    //       {x: "12/29/2022", y: 100}
+    //     ],
+    //     maxBarThickness: 2,
+    // });
+    // chart.update();
 }
 
 // DEBUG
