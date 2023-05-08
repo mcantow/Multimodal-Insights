@@ -5,7 +5,7 @@ if ! [ -x "$(command -v docker-compose)" ]; then
   exit 1
 fi
 
-domains=(thoughtline.org www.thoughtline.org)
+domains=(multimodalinsights.com www.multimodalinsights.com)
 rsa_key_size=4096
 data_path="./data/certbot"
 email="mcantow@mit.edu" # Adding a valid address is strongly recommended
