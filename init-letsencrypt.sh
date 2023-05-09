@@ -1,9 +1,8 @@
 #!/bin/bash
 #  THIS script downloads certificates for you production instance
-#  MAKE sure to add you domain name(s) to the variable in line 11
+#  MAKE sure to add you domain name(s) to the variable in line 10
 #     domains should list your dns registered name first, others after, (ex www.primaryDomainName)
-#  ALSO make sure your ports 80 is open, for example not running a container
-  # docker compose down should work 
+#  IF USING CLOUDFLARE make sure Full (strict) is enabled under SSL
 
 ################################################################################
 # PUT YOUR DOMAIN NAMES IN #####################################################
@@ -19,6 +18,10 @@ if [ -d "$data_path" ]; then
   fi
 fi
 echo "### Creating certificate for $domains ..."
+
+# open ports
+sudo fuser -k 443/tcp
+sudo fuser -k 80/tcp
 
 # install 
 apt-get update
@@ -41,3 +44,7 @@ eval "$certbot_command"
 
 # copy certs into application directory
 cp -Lr /etc/letsencrypt/live $data_path/conf
+
+# open ports
+sudo fuser -k 443/tcp
+sudo fuser -k 80/tcp
