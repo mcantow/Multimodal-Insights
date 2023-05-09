@@ -1,168 +1,54 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<style>
+    .topnav::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, #1ec4a8, #0E1111, #0E1111, #C41E3A);
+    background-size: 400% 400%;
+    animation: gradientAnimation 15s ease infinite;
+    z-index: -1;
+    }
+    @keyframes gradientAnimation {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+    }
+
+    .laser {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #C41E3A;
+    box-shadow: 0 0 7px 2px white;
+    pointer-events: none;
+    animation: fadeOut 1s ease-in;
+    }
+
+    @keyframes fadeOut {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+    }
+</style>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 <script src="/static/js/gazefilter.js"></script>
-<script>
-    // https://beehiveor.gitlab.io/gazefilter/api.html
-    const audio = new Audio("http://www.foxysite.de/StarWars/HAN02.WAV");
-    document.addEventListener('DOMContentLoaded', initGazefilter());
-    // let canvasBox = document.getElementById('canvasBox')
-    let trackingData = false;
-    async function initGazefilter(){
-        let WASM_URL = '/static/gazefilter.wasm';
-        await gazefilter.init(WASM_URL);
-        try{
-            var calibs = window.localStorage.getItem('calibrations');
-            await gazefilter.tracker.setCalibration(JSON.parse(calibs));
-            // gazefilter.tracker.toggle();
-            // gazefilter.tracker.toggle();
-
-        }catch{
-            console.log('loading error')
-        }
-        await gazefilter.tracker.connect(); 
-        let canvas = document.getElementById("tracker-canvas");
-        gazefilter.visualizer.setCanvas(canvas);
-        gazefilter.visualizer.setListener("filter", render);
-        
-        document.addEventListener("mousemove", startWeights);
-
-        function startWeights(event){
-            gazefilter.tracker.calibrate(
-                event.timeStamp,  // relative to performance.timeOrigin
-                event.screenX,  // in pixels
-                event.screenY,  // in pixels
-                1.0  // see note below
-            ); 
-            document.removeEventListener("mousemove", startWeights)
-        }
-        // document.getElementById('target').click();
-
-        // gazefilter.tracker.setCalibration(calibs);
-        // if (calibs){
-            // calibs = JSON.parse(calibs);
-            // console.log(calibs); 
-            // gazefilter.tracker.setCalibration(calibs);
-            // console.log(calibs); 
-        // }
-        // let training = JSON.parse(window.localStorage.getItem('calibrations'));
-        // if (training){
-        //     gazefilter.tracker.setCalibration(training);
-        // }
-        // gazefilter.visualizer.setListener('filter', function(){alert('change')});
-        // gazefilter.tracker.add
-
-
-        function oncalib(response) {
-            console.log("calibration error: ", response.errorValue);
-        }
-
-        // // enable mouse calibration
-        // window.addEventListener("click", onmouseclick);
-
-        gazefilter.tracker.addListener("calib", oncalib);
-
-        gazefilter.tracker.addListener("filter", event => {
-            if (!isNaN(event.bestGazePoint()[0])){
-                // console.log(event.bestGazePoint())
-                var[x,y] = event.bestGazePoint();
-                var dot = document.getElementById('dot');
-                dot.style.left = x + 'px';
-                dot.style.top  = y + 'px';
-                if (!trackingData){
-                    canvasBox.classList.add('ready');
-                    trackingData = true
-                }
-            }else{
-                if (trackingData){
-                    canvasBox.classList.remove('ready');
-                    trackingData = false
-                }
-            }
-        });
-        const target = document.querySelector('.target');
-
-        target.addEventListener('click', function(event) {
-                audio.play();
-                gazefilter.tracker.calibrate(
-                    event.timeStamp,  // relative to performance.timeOrigin
-                    event.screenX,  // in pixels
-                    event.screenY,  // in pixels
-                    1.0  // see note below
-                );
-                try{
-                    var myObject =  gazefilter.tracker.getCalibration();
-                    // console.log(myObject)
-                    // // myObject.circular = myObject; // Create a circular reference
-                    // const serialized = customSerialize(myObject);
-                    // window.localStorage.setItem('calibrations',serialized);
-                    var calibs = new Object;
-                    calibs.count = myObject.count;
-                    calibs.data = Array.from(myObject.data); // bug fix
-                    calibs.device = myObject.device;
-                    calibs.error = myObject.error;
-                    calibs.eye = myObject.eye;
-                    calibs.timestamp = myObject.timestamp;
-                    calibs.version = myObject.version;
-                    window.localStorage.setItem('calibrations', JSON.stringify(calibs));
-                    // gazefilter.tracker.setCalibration(JSON.parse(JSON.stringify(calibs)))
-                }catch{}
-                transportTarget(target);
-        });
-
-    }
-
-    function transportTarget(target){
-        const x = Math.floor(Math.random() * (window.innerWidth - 50));
-        const y = Math.floor(Math.random() * (window.innerHeight-50));
-        target.style.left = x + 'px';
-        target.style.top = y + 'px';
-    }
-    function render(ctx, trackEvent) {
-        console.log('drW')
-        // draw video frame
-        ctx.drawImage(
-            gazefilter.tracker.videoElement(),
-            0, 0, ctx.canvas.width, ctx.canvas.height
-        );
-
-        // set drawing style
-        ctx.strokeStyle = 'white';
-        ctx.fillStyle = 'white';
-        ctx.lineWidth = 2;
-
-        // draw facial landmarks
-        let shapeArray = trackEvent.shapeArrayView();
-        for (let i = 0; i < trackEvent.shapeSize(); i++) {
-            ctx.beginPath();
-            let pointX = shapeArray[i * 2];
-            let pointY = shapeArray[i * 2 + 1];
-            ctx.arc(pointX, pointY, 2, 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-        // draw pupil center points
-        ctx.strokeStyle = 'red';
-        let [lx, ly, rx, ry] = trackEvent.pupilArray();
-        ctx.beginPath();
-        ctx.arc(lx, ly, 3, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(rx, ry, 3, 0, Math.PI * 2);
-        ctx.stroke();
-    }
-
-    // function initTrain(){
-        //if theres data
-        //else
-        // try{
-            // console.log(gazefilter.tracker.getCalibration())
-        // }catch{
-            // console.log('not conntected')
-        // }
-    // }
-</script>
+<script src="/static/js/trainGazefilter.js"></script>
 <canvas style="width: 256px !important; height: 192px !important; transform: rotateY(180deg) !important;" id="tracker-canvas"></canvas>
 <div id="canvasBox"></div>
 <div id="dot" style="position: absolute; left: 0; top:0; width:15px; height: 15px; border-radius: 50%; background-color: red;"></div>

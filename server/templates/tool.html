@@ -6,6 +6,31 @@
         var json_data = JSON.parse('{{json_data|safe}}');
     //    alert(people[0][0]) 
     </script>
+    <style>
+        .topnav::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, #1ec4a8, #0E1111, #0E1111, #C41E3A);
+        background-size: 400% 400%;
+        animation: gradientAnimation 15s ease infinite;
+        z-index: -1;
+        }
+        @keyframes gradientAnimation {
+        0% {
+            background-position: 0% 50%;
+        }
+        50% {
+            background-position: 100% 50%;
+        }
+        100% {
+            background-position: 0% 50%;
+        }
+        }
+    </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
     <script src="/static/js/gazefilter.js"></script>
     <!-- <script src="jspsych/plugin-webgazer-calibrate.js"></script> -->
