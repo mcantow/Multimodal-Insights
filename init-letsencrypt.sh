@@ -1,4 +1,4 @@
-# !/bin/bash
+#!/bin/bash
 #  THIS script downloads certificates for you production instance
 #  MAKE sure to add you domain name(s) to the variable in line 11
 #     domains should list your dns registered name first, others after, (ex www.primaryDomainName)
@@ -39,4 +39,5 @@ done
 # Execute the certbot command
 eval "$certbot_command"
 
-cp -Lr /etc/letsencrypt/live $data_path/conf/live
+# copy certs into application directory
+cp -Lr /etc/letsencrypt/live $data_path/conf
