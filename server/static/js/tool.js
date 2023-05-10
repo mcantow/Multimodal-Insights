@@ -173,6 +173,7 @@ document.addEventListener('DOMContentLoaded', function () {
         updateHelpCheck(event.results);
         updateSelectedPeople(event.results);
         updateDate(event.results);
+        updateBestWorstCheck(event.results);
     }
     // recognition.onspeechstart = function(){
     //     console.log('speech started');
@@ -220,6 +221,8 @@ document.addEventListener('DOMContentLoaded', function () {
             recording = false;
             addPerson = false;
             removePerson = false;
+        }else if (askedForBest || askedForWorst){
+            handleBestWorstAnalysis(start_date, end_date);
         }else{
             var resNotification = document.createElement('div');
             terminal.appendChild(resNotification);
@@ -275,7 +278,6 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function makeQuery(currPeopleObjs, queriedField, start_date, end_date){
-    console.log(currPeopleObjs, queriedField, start_date, end_date)
     let res = 0;
     let seen_datapoints = 0;
     for (var i=0; i<currPeopleObjs.length; i++){
@@ -293,20 +295,116 @@ function makeQuery(currPeopleObjs, queriedField, start_date, end_date){
             }else{
                 const start_i = computeIndex(start_date);
                 const end_i = computeIndex(end_date);
-                console.log(start_i, end_i);
                 const resData = personData[jsonIndex].slice(end_i, start_i) // temp fix 
-                console.log(personData[jsonIndex], resData)
                 res = res + resData.reduce((a, b) => a + b, 0);
                 seen_datapoints = seen_datapoints + start_i - end_i
             }
         }
     }
     if (queriedField == 'win rate'){
-        console.log(res, seen_datapoints, res/seen_datapoints)
         res = Math.round(res /seen_datapoints*100)/100;
     }
     return res;
 }
+
+function handleBestWorstAnalysis(start_date, end_date){
+    var jsonFields = ['revenue', 'completed-sales', 'customer-conversations', 'win-rate'];
+    var terminal = document.getElementById('terminal');
+    var resNotification = document.createElement('div');
+    var extremeFieldPeople = [null, null, null, null]; // hold the best/worst person on those values
+    currPeopleList = [];
+    currPeopleObjs = [];
+    terminal.appendChild(resNotification);
+    if (askedForBest){
+        resNotification.innerHTML = '> Who has the best performance?';
+        var extremeFieldNumbers = [0,0,0,0];  // hold the best/worst values seen
+    }else{
+        resNotification.innerHTML = '> Who has the worst performance?';
+        var extremeFieldNumbers = [Infinity,Infinity,Infinity,Infinity]
+    }
+    if( start_date != 'none'){
+        resNotification.innerText = resNotification.innerText + ', ' + start_date;
+        if (end_date != 'none'){
+            resNotification.innerText = resNotification.innerText + '-' + end_date;
+        }
+    }
+    resNotification.classList.add('command');
+    for (var i=0; i<people.length; i++){
+        for (var jsonIndex=0; jsonIndex < 4; jsonIndex++){
+            var personData = json_data[people[i][0] + people[i][1]];
+            var res = 0;
+            var seen_datapoints = 0;
+            if (start_date == 'none'){
+                res = res + personData[jsonFields[jsonIndex]].reduce((a, b) => a + b, 0);
+                seen_datapoints = seen_datapoints + NUM_DAYS;
+            }else{
+                if (end_date == 'none'){
+                    const start_i = computeIndex(start_date);
+                    res = res + personData[jsonFields[jsonIndex]][start_i];
+                    seen_datapoints = seen_datapoints ++;
+                }else{
+                    const start_i = computeIndex(start_date);
+                    const end_i = computeIndex(end_date);
+                    const resData = personData[jsonFields[jsonIndex]].slice(end_i, start_i) // temp fix 
+                    res = res + resData.reduce((a, b) => a + b, 0);
+                    seen_datapoints = seen_datapoints + start_i - end_i
+                }
+            }
+            if (queriedField == 'win rate'){
+                res = Math.round(res /seen_datapoints*100)/100;
+            }
+            if (askedForBest){
+                if (extremeFieldNumbers[jsonIndex] < res){
+                    extremeFieldNumbers[jsonIndex] = res;
+                    extremeFieldPeople[jsonIndex] = people[i];
+                } 
+            }else{
+                if (extremeFieldNumbers[jsonIndex] > res){
+                    extremeFieldNumbers[jsonIndex] = res;
+                    extremeFieldPeople[jsonIndex] = people[i];
+                } 
+            }
+        }
+    }
+    // prepare results string
+    const result = findMostFrequentElement(extremeFieldPeople);
+    var resStr = result.element[0];
+    currPeopleList.unshift(result.element[0]);
+    currPeopleObjs.unshift(result.element);
+    if (askedForBest){resStr = resStr + ' has done the best, leading in ['}else{resStr = resStr + ' has done the worst, trailing in ['}
+    for(var i=0; i<result.indices.length; i++){
+        resStr = resStr + jsonFields[result.indices[i]].replace('-', ' ') + ' ';
+    }
+    resStr = resStr + ']';
+    // update dom
+    let activeDoms = document.getElementsByClassName('personContainer');
+    for (var i=0; i<activeDoms.length; i++){
+        activeDoms[i].classList.remove('selected');
+    }   
+    document.getElementById(result.element[0] + result.element[1]).classList.add('selected');
+    var responseNotification = document.createElement('div');
+    terminal.appendChild(responseNotification);
+    responseNotification.innerHTML = resStr;
+    askedForBest = false;
+    askedForWorst = false;
+    speakQuery(true, true, resStr);
+}
+
+function findMostFrequentElement(list) {
+    const frequencyMap = new Map();
+    
+    // Count the frequency of each element in the list
+    list.forEach(element => {
+      frequencyMap.set(element, (frequencyMap.get(element) || 0) + 1);
+    });
+    
+    const maxFrequency = Math.max(...frequencyMap.values());
+    const mostFrequentElement = [...frequencyMap.keys()].find(key => frequencyMap.get(key) === maxFrequency);
+    const indices = list.map((element, index) => element === mostFrequentElement ? index : null).filter(index => index !== null);
+    
+    return { element: mostFrequentElement, indices: indices };
+  }
+
 
 function computeIndex(date){
     const today = new Date();
@@ -368,6 +466,29 @@ function updateHelpCheck(results){
     // console.log(res);
     if (res.includes('help') || res == 'help'){
         askedForHelp = true;
+    }
+}
+
+
+// KEEP TRACK IF USER ASKED FOR BEST WORST ANALYSIS
+var askedForBest = false;
+var askedForWorst = false;
+
+function updateBestWorstCheck(results){
+    /**
+     * Keeps a running log of whether user asked for help.
+     * Updated after each recognition result
+     * @param {[SpeechRecognitionResultList]} results [current results]
+     * @return {[null]} [updates the global variable queriedFields]
+     */
+    var res = results[0][0].transcript;
+    res = res.toLowerCase();
+    // console.log(res);
+    if (res.includes('best performance') || res == 'best performance' || res.includes('the best') || res == 'the best'){
+        askedForBest = true;
+    }
+    if (res.includes('worst performance') || res == 'worst performance'|| res.includes('the worst') || res == 'the worst'){
+        askedForWorst = true;
     }
 }
 
