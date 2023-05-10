@@ -56,7 +56,6 @@ document.addEventListener('DOMContentLoaded', initGazefilter());
         const target = document.querySelector('.target');
 
         target.addEventListener('click', function(event) {
-                audio.play();
                 gazefilter.tracker.calibrate(
                     event.timeStamp,  // relative to performance.timeOrigin
                     event.screenX,  // in pixels
@@ -76,6 +75,7 @@ document.addEventListener('DOMContentLoaded', initGazefilter());
                     window.localStorage.setItem('calibrations', JSON.stringify(calibs));
                 }catch{}
                 transportTarget(target);
+                audio.play();
         });
 
     }

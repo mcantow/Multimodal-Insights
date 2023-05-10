@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (end_date != 'none'){
                     resNotification.innerText = resNotification.innerText + '-' + end_date;
                 }
-                makeDateBar();
+                // makeDateBar();
             }
             resNotification.classList.add('command');
             var responseNotification = document.createElement('div');
@@ -341,7 +341,11 @@ function speakText(text){
     // var synthesis = window.speechSynthesis;
     var voices = speechSynthesis.getVoices();
     // console.log(voices);
-    utterance.voice = voices[6];
+    for (var i=0; i<voices.length; i++){
+        if (voices[i].name == "Google UK English Male"){
+            utterance.voice = voices[i];
+        }
+    }
     utterance.pitch = 1;
     utterance.rate = 1;
     utterance.volume = 0.8;
@@ -575,51 +579,51 @@ function updateDate(results){
 }
 
 
-function makeDateBar(){
-    let bar = document.getElementById('dataBar');
-    // left 40px, right 5px, NUM_DAYS total days
-    // Create a date object for today
-    const today = new Date();
-    // Create a date object for NUM_DAYS days before today
-    const firstDate = new Date(today.getTime() - (NUM_DAYS * 24 * 60 * 60 * 1000));
+// function makeDateBar(){
+//     let bar = document.getElementById('dataBar');
+//     // left 40px, right 5px, NUM_DAYS total days
+//     // Create a date object for today
+//     const today = new Date();
+//     // Create a date object for NUM_DAYS days before today
+//     const firstDate = new Date(today.getTime() - (NUM_DAYS * 24 * 60 * 60 * 1000));
 
-    // console.log(today-firstDate, parseInt((today - firstDate)/(24 * 60 * 60 * 1000)));
+//     // console.log(today-firstDate, parseInt((today - firstDate)/(24 * 60 * 60 * 1000)));
 
-    const [selectedMonth, selectedDay] = start_date.split(' ');
+//     const [selectedMonth, selectedDay] = start_date.split(' ');
 
-    // Create a new date object for the current year
-    const currentDate = new Date();
+//     // Create a new date object for the current year
+//     const currentDate = new Date();
 
-    // Set the year of the date object to the current year
-    const year = currentDate.getFullYear();
+//     // Set the year of the date object to the current year
+//     const year = currentDate.getFullYear();
 
-    // Create a new date object for the specified month, day, and year
-    const selectedDate = new Date(`${selectedMonth} ${selectedDay}, ${year}`);
+//     // Create a new date object for the specified month, day, and year
+//     const selectedDate = new Date(`${selectedMonth} ${selectedDay}, ${year}`);
 
-    // If the resulting date is in the future, adjust it to the previous year
-    if (selectedDate > currentDate) {
-        selectedDate.setFullYear(year - 1);
-    }
-    const diffInMs_total = Math.abs(firstDate - today);
-    const diffInDays_total = Math.ceil(diffInMs_total / (1000 * 60 * 60 * 24));
-    const diffInMs_selected = Math.abs(firstDate - selectedDate);
-    const diffInDays_selected = Math.ceil(diffInMs_selected / (1000 * 60 * 60 * 24));
-    // var percentLeft = 100*parseInt((today - firstDate) * 24 * 60 * 60 * 1000)/NUM_DAYS;
-    var percentLeft = 100*(diffInDays_selected - 1)/diffInDays_total;
-    // bar.style.left =  percentLeft + '%'; 
-    // var canvas = document.getElementById("line-chart");
-    // var ctx = canvas.getContext("2d");
-    // ctx.fillStyle = "#FF0000";
-    // ctx.fillRect(0, 0, 150, 75);
-    // chart.data.datasets.push({
-    //     type: 'bar',
-    //     data: [
-    //       {x: "12/29/2022", y: 100}
-    //     ],
-    //     maxBarThickness: 2,
-    // });
-    // chart.update();
-}
+//     // If the resulting date is in the future, adjust it to the previous year
+//     if (selectedDate > currentDate) {
+//         selectedDate.setFullYear(year - 1);
+//     }
+//     const diffInMs_total = Math.abs(firstDate - today);
+//     const diffInDays_total = Math.ceil(diffInMs_total / (1000 * 60 * 60 * 24));
+//     const diffInMs_selected = Math.abs(firstDate - selectedDate);
+//     const diffInDays_selected = Math.ceil(diffInMs_selected / (1000 * 60 * 60 * 24));
+//     // var percentLeft = 100*parseInt((today - firstDate) * 24 * 60 * 60 * 1000)/NUM_DAYS;
+//     var percentLeft = 100*(diffInDays_selected - 1)/diffInDays_total;
+//     // bar.style.left =  percentLeft + '%'; 
+//     // var canvas = document.getElementById("line-chart");
+//     // var ctx = canvas.getContext("2d");
+//     // ctx.fillStyle = "#FF0000";
+//     // ctx.fillRect(0, 0, 150, 75);
+//     // chart.data.datasets.push({
+//     //     type: 'bar',
+//     //     data: [
+//     //       {x: "12/29/2022", y: 100}
+//     //     ],
+//     //     maxBarThickness: 2,
+//     // });
+//     // chart.update();
+// }
 
 // DEBUG
 // function moveBlock(){
