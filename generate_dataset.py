@@ -25,10 +25,15 @@ def makeSalesData(people, NUM_DAYS = 120):
     return salesData
 
 if __name__ == '__main__':
-    peopleList = ['john', 'janice', 'jessica', 'jeff', 'josie', 'john']
-    peopleCounts = [0,      0,        0,         0,      0     ,  1    ]
+    ## dataset 1
+    # peopleList = ['john', 'janice', 'jessica', 'jeff', 'josie', 'john']
+    # peopleCounts = [0,      0,        0,         0,      0     ,  1    ]
+    # dataset 2
+    peopleList = ['don', 'joanna', 'don', 'joanna', 'don']
+    peopleCounts = [0,      0,        1,     1     ,  2    ]
     people = list(zip(peopleList, peopleCounts))
     salesData = makeSalesData(people)
     salesDataJSON = json.dumps(salesData)
-    with open("salesData.txt", "w") as text_file:
+    # with open("salesData.txt", "w") as text_file:
+    with open("salesData2.txt", "w") as text_file:
         text_file.write(salesDataJSON)
