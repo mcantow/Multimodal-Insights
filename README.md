@@ -1,17 +1,81 @@
 # Multimodal-Insights
-Final project for Multimodal User Interfaces. Sales dashboard enabling concurrent voice and gaze interactions. To use the system I recommend using the website version at https://multimodalinsights.com 
+Final project for Intelligent, Multimodal User Interfaces. This repo is for a sales dashboard enabling concurrent voice and gaze interactions. To use the system I recommend using the website version at https://multimodalinsights.com, which also links to a demo video with some awesome showmanship. 
 
 ## Table of Contents
 1. [Repo Overview](#overview)
     1. [High Level](#highLevel)
-    2. [audio_app](#audio_app)
-    3. [audio_server](#audio_server)
+    3. [server](#server)
     4. [nginx](#nginx)
-    5. [Testing](#testing)
 2. [Getting Started](#getting_started)
 3. [Local Venv Mode](#localvenv)
 4. [Local Docker Mode](#localdocker)
 5. [Production Docker Mode](#proddocker)
+
+
+## Repo Overview <a name="overview"></a>
+### High Level <a name="highlevel"></a>
+```
+Multimodal-Insights
+│   .env.dev                    # Environment Variables for local development
+│   .env.prod                   # Environment Variables for production
+│   .gitignore                  # General Django gitignore
+│   docker-compose.dev.yml      # Container architecture for local development
+│   docker-compose.yml          # Container architecture for production
+│   Dockerfile                  # Container structure for Django component of the application
+│   entrypoint.sh               # Startup instructions for Docker build
+│   init-certbot.sh             # Initialize production certificates
+│   manage.py                   # Manage the Django application (database, superusers, collectstatic, runserver, ...)
+│   README.md                   # You are here.
+│   requirements.txt            # Application Dependencies
+│
+└───server                 # Main folder with application logic
+│
+└───nginx                  # Configuration settings for the production nginx build
+```
+
+### server <a name="server"></a>
+```
+server
+│   init.py                     # Marks directory as python package
+│   asgi.py                     # Configures Asynchronous server (not used)
+│   settings.py                 # Configurations settings for site
+│   urls.py                     # Map URLs to view functions
+│   views.py                    # Renders templates and gets datasets
+│   wsgi.py                     # Configures Web Server Gateway Interface
+│
+└───templates
+│   │   base.html               # Skelaton for other html files, to be extended from
+│   │   home.html               # Landing page
+│   │   instructions.html       # Instructions page
+│   │   tool.html               # Core tool page
+│   │   tool_options.html       # Select a dataset page
+│   │   trainGazefilter.html    # Training game for gazefilter
+│   │   webSpeechExample.html   # Default example for the web speech API I worked from
+│   │   webgazer_example.html   # I used a different gaze tracker but kept this original example for another tracker as a reference
+│
+└───static
+    |
+    └───css                     #  Add to template with `src="{% static 'css/{yourstyle}.css' %}"`, will probably not need more css files
+    |   |   main.css
+    |   
+    └───img                     #  Add to template with `src="{% static 'img/{yourimg}.jpg' %}"`
+    |   |   background-tree.jpg
+    |   |   ...
+    |
+    └───js                      #  Add to template with `src="{% static 'js/{yourScript}.js' %}"`
+    |   |   styleActiveTab.js   #  Add CSS class "active" with id = value of "activeTab" in template variables
+    |   |   audioPlayer.js      #  Makes the audio player work
+    |   |   topnav.js           #  Hides the title in topnav (leaving logo) for narrow screens
+```
+
+### nginx <a name="nginx"></a>
+```
+nginx
+│   Dockerfile                  # Production Dockerfile
+│   Dockerfile.dev              # Local Dev Dockerfile
+│   nginx.conf                  # Production Configuration
+│   nginx.dev.conf              # Local Dev Configuration
+```
 
 ## Getting Started <a name="getting_started"></a>
 The system can run in three modes: local venv, local docker, and production docker. I find the local venv version is most convenient, but I don't have comprehensive specs on supported python and OS versions, so I cant gurentee it works on every machine. This mode essentially runs the django code in a virtual environment with the systems host operating system and python installation, making the application available on localhost:8000. I also provide local docker build instructions, that run the entire application stack and makes the application available on localhost. This mode is much more relaible but heavier. I also include a production docker build for deployment. 
