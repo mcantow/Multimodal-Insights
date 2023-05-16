@@ -190,7 +190,7 @@ When setting up the docker server for the first time, there are some common issu
 [install docker on a linux machine](https://docs.docker.com/engine/install/ubuntu/)
 
 ### Step 2, clone repo (if new machine)
-To clone the git repo, you can [generate an ssh key and configure it in your bitbucket account](https://www.theserverside.com/blog/Coffee-Talk-Java-News-Stories-and-Opinions/BitBucket-SSH-Key-Example). 
+Public repo can be cloned easily
 
 ### Step 3, setup certificates (if new machine)
 There is an additional step to generate the first ssl certificates, which can be done by running  ./init-certbot.sh. There is a very annoying problem with https and nginx that nginx cannot boot without ssl certificates, and cannot generate certificates without booting. This script uses a plugin to generate the first certificate batch before certbot takes over. 
