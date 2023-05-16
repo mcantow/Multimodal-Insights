@@ -16,6 +16,9 @@ Final project for Intelligent, Multimodal User Interfaces. This repo is for a sa
 ### High Level <a name="highlevel"></a>
 ```
 Multimodal-Insights
+|   generate_dataset.py         # Used to generate the datasets used in the application
+|   salesData.txt               # Dataset1
+|   salesData2.txt              # Dataset2
 │   .env.dev                    # Environment Variables for local development
 │   .env.prod                   # Environment Variables for production
 │   .gitignore                  # General Django gitignore
