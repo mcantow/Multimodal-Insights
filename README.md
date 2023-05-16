@@ -55,17 +55,21 @@ server
 │
 └───static
     |
-    └───css                     #  Add to template with `src="{% static 'css/{yourstyle}.css' %}"`, will probably not need more css files
-    |   |   main.css
+    └───css                     #  Styling for the app
+    |   |   style.css
     |   
-    └───img                     #  Add to template with `src="{% static 'img/{yourimg}.jpg' %}"`
-    |   |   background-tree.jpg
+    └───img                     #  Various images used by the app
+    |   |   don0.jpg
     |   |   ...
     |
-    └───js                      #  Add to template with `src="{% static 'js/{yourScript}.js' %}"`
-    |   |   styleActiveTab.js   #  Add CSS class "active" with id = value of "activeTab" in template variables
-    |   |   audioPlayer.js      #  Makes the audio player work
-    |   |   topnav.js           #  Hides the title in topnav (leaving logo) for narrow screens
+    └───js                      
+    |   |   gazefilter.js       #  Imported codebase for the gazefilter.js functionality
+    |   |   tool.js             #  Driver js file for the tool
+    |   |   trainGazefilter.js  #  Driver js file for the train page
+    |   |   webSpeechExample.js #  Driver js file for the webSpeechExample page I used in experimenting
+    |   |   webgazer.js         #  Driver js file for the webgazer example I ended up not using
+    |
+    |  gazefilter.wasm     # imported module used by the gazefilter to initialize
 ```
 
 ### nginx <a name="nginx"></a>
